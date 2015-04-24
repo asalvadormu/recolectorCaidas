@@ -70,7 +70,7 @@ public class Extractor {
 
         Log.i("extractor", "Calculo Caracteristicas");
         //a partir de aqui son los cálculos de los ocho valores.
-        valor_AAMV=calcularAAMV();
+        valor_AAMV=calcularAAMV2(); //modificado para calcular en 1000 ms centrados en IS IE
         valor_IDI=calcularIDI();
         valor_MPI=calcularMPI();
         valor_MVI=calcularMVI();
@@ -188,6 +188,48 @@ public class Extractor {
         return difTotal;
     }
 
+
+    private double calcularAAMV2(){
+        double valor=0;
+        int marcaInferior=0;
+        int marcaSuperior=valores.length;
+
+        int marcaMedia=marcadorIS;
+        Log.i("EXTRACTOR","EXTRACTOR AAMV 2 "+(marcadorIE-marcadorIS)/2);
+        marcaMedia=marcadorIS+ (int) ((marcadorIE-marcadorIS)/2);
+        Log.i("EXTRACTOR","EXTRACTOR marcaMedia"+marcaMedia);
+
+        //buscar marca de tiempo 500 milisegundos antes
+        for(int i=marcaMedia;i>0;i--){
+            double difTiempo=valores[marcaMedia].getTiempo()-valores[i].getTiempo();
+            if( difTiempo>500000000 ){
+                marcaInferior = i;
+                break;
+            }
+        }
+        Log.i("EXTRACTOR","EXTRACTOR marcaInferior "+marcaInferior);
+        //buscar marca de tiempo 500 milisegundos despues
+        for(int i=marcaMedia;i<valores.length;i++){
+            double difTiempo=valores[i].getTiempo()-valores[marcaMedia].getTiempo();
+            if(difTiempo>500000000){
+                marcaSuperior=i;
+                break;
+            }
+        }
+        Log.i("EXTRACTOR","EXTRACTOR marcaInferior "+marcaSuperior);
+
+        //calcular el valor
+        for(int i=marcaInferior;i<marcaSuperior;i++){
+            double dif= Math.abs(valores[i].getAceleracion() - valores[i + 1].getAceleracion());
+            valor=valor+dif;
+        }
+        valor=valor/(marcaSuperior-marcaInferior);
+        Log.i("Acelerometro", "difTotal: " + valor);
+
+
+        return valor;
+    }
+
     /**
      * Calcula el indice de duración de impacto. IDI
      * Diferencia entre el tiempo valor_IE y el tiempo valor_IS
@@ -288,41 +330,43 @@ public class Extractor {
      * @return El valor de ARI.
      */
     private double calcularARI(){
-        int marcaInicio=marcadorIS;
-        int marcaFin=marcadorIE;
-        double dif= valor_IE - valor_IS;
-        //calculo intervalo centrado
-        if( dif > 700000000 ){
-            double tiempoAnte=dif/2-350000000+ valor_IS;
-            double tiempoDes=dif/2+350000000+ valor_IS;
+        double valor=0;
+        int marcaInferior=0;
+        int marcaSuperior=valores.length;
 
-            //buscar las posiciones de esos tiempos.
-            for(int i=0;i<valores.length;i++) {
-               if( valores[i].getTiempo()>tiempoAnte){
-                   marcaInicio=i-1;
-                   if(marcaInicio<0) marcaInicio=0;
-                   break;
-               }
-            }
-            for(int i=0;i<valores.length;i++) {
-                if(valores[i].getTiempo()>tiempoDes){
-                    marcaFin=i;
-                    break;
-                }
+        int marcaMedia=marcadorIS;
+        System.out.println("EXTRACTOR ARI "+(marcadorIE-marcadorIS)/2);
+        marcaMedia=marcadorIS+ (int) ((marcadorIE-marcadorIS)/2);
+        System.out.println("EXTRACTOR marcaMedia"+marcaMedia);
+
+        //buscar marca de tiempo 350  milisegundos antes
+        for(int i=marcaMedia;i>0;i--){
+            double difTiempo=valores[marcaMedia].getTiempo()-valores[i].getTiempo();
+            if( difTiempo>350000000 ){
+                marcaInferior = i;
+                break;
             }
         }
-        //calculo indice
-        double totalmuestras=marcaFin-marcaInicio+1;
-        double muestrasEnIntervalo=0;
+        System.out.println("EXTRACTOR marcaInferior "+marcaInferior);
+        //buscar marca de tiempo 350 milisegundos despues
+        for(int i=marcaMedia;i<valores.length;i++){
+            double difTiempo=valores[i].getTiempo()-valores[marcaMedia].getTiempo();
+            if(difTiempo>350000000){
+                marcaSuperior=i;
+                break;
+            }
+        }
 
-        for(int i=marcaInicio;i<=marcaFin;i++){
+        //calcular el ari.
+        double totalmuestras=marcaSuperior-marcaInferior;
+        double muestrasEnIntervalo=0;
+        for(int i=marcaInferior;i<=marcaSuperior;i++){
             double ace=valores[i].getAceleracion();
             if( ace<0.8 || ace>1.5 ){
                 muestrasEnIntervalo++;
             }
         }
-        double valor=muestrasEnIntervalo/totalmuestras;
-        Log.i("EXTRACTOR","EXTRACTOR ARI "+valor+" muestras "+muestrasEnIntervalo+" total "+totalmuestras+" marcaInicio "+marcaInicio+" marcaFin "+marcaFin);
+        valor=muestrasEnIntervalo/totalmuestras;
         return valor;
     }
 
@@ -405,7 +449,7 @@ public class Extractor {
         int contadorPasos=0;
 
         //calculo pasos
-        int marcaActual=0; //indica el indice actual que se esta comprobando.
+        int marcaActual=marcaInicio; //indica el indice actual que se esta comprobando.
         while(marcaActual<marcadorPeak){
             if( modo.equals("inicio")){
 

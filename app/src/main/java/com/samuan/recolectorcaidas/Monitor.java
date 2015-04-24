@@ -132,7 +132,8 @@ public class Monitor {
             double dif=Math.abs( datos[j].getAceleracion() - datos[j+1].getAceleracion() );
             difTotal=difTotal+dif;
         }
-        difTotal=difTotal/(datos.length-marcador);
+        //difTotal=difTotal/(datos.length-marcador); //divide entre mas datos --> valor mas pequeño
+        difTotal=difTotal/(marcadorFin-marcador);
         Log.i(TAG,"Filtro AAMV: "+difTotal);
 
         FileOperation.fileLogWrite(TAG,"Filtro AAMV Test Actividad: "+difTotal);
