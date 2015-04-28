@@ -145,7 +145,7 @@ public class Extractor {
         //si no aparece < 0.8 o despues >1.5 entonces peaktime.
         boolean elmenor=false;
         boolean elmayor=false;
-        for(int j=marcadorTiempoIEMenos;j==marcadorPeak;j++){
+        for(int j=marcadorTiempoIEMenos;j<=marcadorPeak;j++){
 
             if(!elmenor){
                 if(valores[j].getAceleracion()<0.8){
