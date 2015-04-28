@@ -54,7 +54,7 @@ public class ServicioMuestreador extends Service implements SensorEventListener 
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        wakeLock = mgr.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "MyWakeLock");
+        wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakeLock");
         wakeLock.acquire();
         monitor=new Monitor(getResources());
         sensor.registerListener(ServicioMuestreador.this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),  20000, handler);
